@@ -1,0 +1,22 @@
+name: N10-009 Curriculum Refresh Check
+
+on:
+  push:
+    branches:
+      - audit/n10-009-doctrine-refresh
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:curriculum
+      - run: npm run build
