@@ -6,6 +6,7 @@ import {
   writeTranscript,
 } from '../src/chat/core/state.js'
 import { buildNetworkContext } from '../src/chat/networkContext.js'
+import { injectChatContext } from './inject-chat-context.mjs'
 
 class MemoryStorage {
   constructor(seed = {}) {
@@ -41,10 +42,13 @@ assert.notEqual(getDailySessionId(storage, nextDay), firstSession)
 
 const progressStorage = new MemoryStorage({
   netplus_v3: JSON.stringify({
-    completedLessons: ['osi', 'tcp'],
-    quizScores: { osi: 80, tcp: 90 },
-    flashcardsReviewed: 42,
-    currentWeek: 2,
+    xp: 1750,
+    streak: 6,
+    completedLessons: ['0-osi', '0-tcp'],
+    quizScores: { 0: 8, 1: 7 },
+    flashcardCount: 42,
+    subnetSolved: 3,
+    badges: ['first_lesson'],
     nested: { notes: 'x'.repeat(2000) },
   }),
   VITE_SUPABASE_PUBLISHABLE_KEY: 'must-not-leak',
@@ -60,11 +64,23 @@ const context = buildNetworkContext({
 
 assert.equal(context.app, 'network-plus')
 assert.equal(context.current.view, 'lesson')
+assert.equal(context.current.week, 2)
 assert.equal(context.current.lessonId, 'vlans')
-assert.deepEqual(context.progress.completedLessonIds, ['osi', 'tcp'])
-assert.equal(context.progress.currentWeek, 2)
+assert.equal(context.progress.xp, 1750)
+assert.equal(context.progress.streak, 6)
+assert.deepEqual(context.progress.completedLessonIds, ['0-osi', '0-tcp'])
+assert.deepEqual(context.progress.quizScores, { 0: 8, 1: 7 })
+assert.equal(context.progress.flashcardsReviewed, 42)
+assert.equal(context.progress.subnetProblemsSolved, 3)
+assert.deepEqual(context.progress.medals, ['first_lesson'])
 assert.equal(context.recentMessages.length, 8)
 assert.ok(JSON.stringify(context).length < 16000)
 assert.equal(JSON.stringify(context).includes('must-not-leak'), false)
+
+const sourceFixture = `import React, { useState, useCallback, useRef } from "react";\nfunction App(){\n  const showFlash      = inWeeks && subscreen==="flash";\n\n  return (<div/>);\n}`
+const injected = injectChatContext(sourceFixture)
+assert.equal(injected.includes('useEffect'), true)
+assert.equal(injected.includes('__NETWORKPLUS_CHAT_CONTEXT__'), true)
+assert.equal(injected.includes('networkplus:chat-context'), true)
 
 console.log('Network+ chat state/context tests passed')
