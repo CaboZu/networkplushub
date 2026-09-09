@@ -36,7 +36,11 @@ async function responseError(response) {
 export function createNetworkAdapter({ storage = window.localStorage, fetchImpl = window.fetch.bind(window) } = {}) {
   return {
     title: 'Network+ Tutor',
+    kicker: 'AI STUDY ASSISTANT',
+    welcomeTitle: 'Network+ tutor ready.',
+    welcomeBody: 'I can explain concepts, quiz you, and use your saved study progress for context.',
     inputPlaceholder: 'Ask about Network+…',
+    contextEventName: 'networkplus:chat-context',
     openingChoices: OPENING_CHOICES,
 
     load() {
@@ -96,14 +100,5 @@ export function createNetworkAdapter({ storage = window.localStorage, fetchImpl 
         createdAt: new Date().toISOString(),
       }
     },
-  }
-}
-
-export function makeUserMessage(content) {
-  return {
-    id: messageId('user'),
-    role: 'user',
-    content,
-    createdAt: new Date().toISOString(),
   }
 }
