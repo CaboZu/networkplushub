@@ -59,10 +59,12 @@ function firstObject(progress, patterns) {
 
 function progressSummary(progress) {
   return {
-    currentWeek: firstNumber(progress, [/currentWeek/i, /^week$/i]),
+    xp: firstNumber(progress, [/^xp$/i]),
+    streak: firstNumber(progress, [/^streak$/i]),
     completedLessonIds: firstArray(progress, [/completed.*lesson/i, /lesson.*completed/i]),
     quizScores: firstObject(progress, [/quiz.*score/i, /scores.*quiz/i]),
-    flashcardsReviewed: firstNumber(progress, [/flashcard.*review/i, /reviewed.*flashcard/i]),
+    flashcardsReviewed: firstNumber(progress, [/flashcard.*count/i, /flashcard.*review/i, /reviewed.*flashcard/i]),
+    subnetProblemsSolved: firstNumber(progress, [/subnet.*solved/i]),
     medals: firstArray(progress, [/medal/i, /badge/i]),
   }
 }
