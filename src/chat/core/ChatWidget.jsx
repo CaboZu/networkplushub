@@ -1,11 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { makeUserMessage } from '../networkAdapter.js'
 import './chat.css'
 
 function defaultError(error) {
   return error instanceof Error && error.message
     ? error.message
     : 'AI is unavailable right now. Please try again.'
+}
+
+function messageId(prefix) {
+  if (globalThis.crypto?.randomUUID) return `${prefix}-${globalThis.crypto.randomUUID()}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+function makeUserMessage(content) {
+  return {
+    id: messageId('user'),
+    role: 'user',
+    content,
+    createdAt: new Date().toISOString(),
+  }
 }
 
 export default function ChatWidget({ adapter, theme }) {
@@ -62,12 +75,13 @@ export default function ChatWidget({ adapter, theme }) {
   }, [messages, open, sending, showChoices, error])
 
   useEffect(() => {
+    if (!adapter.contextEventName) return undefined
     const onContextChange = () => {
       if (open) setOpen(false)
     }
-    window.addEventListener('networkplus:chat-context', onContextChange)
-    return () => window.removeEventListener('networkplus:chat-context', onContextChange)
-  }, [open])
+    window.addEventListener(adapter.contextEventName, onContextChange)
+    return () => window.removeEventListener(adapter.contextEventName, onContextChange)
+  }, [adapter.contextEventName, open])
 
   const send = useCallback(async (rawText) => {
     const text = rawText.trim()
@@ -112,7 +126,7 @@ export default function ChatWidget({ adapter, theme }) {
           type="button"
           className="np-chat-launcher"
           onClick={openChat}
-          aria-label="Open Network+ tutor"
+          aria-label={`Open ${adapter.title}`}
         >
           <span aria-hidden="true">AI</span>
         </button>
@@ -122,14 +136,14 @@ export default function ChatWidget({ adapter, theme }) {
         <section className="np-chat-panel" role="dialog" aria-label={adapter.title} aria-modal="false">
           <header className="np-chat-header">
             <div>
-              <div className="np-chat-kicker">AI STUDY ASSISTANT</div>
+              <div className="np-chat-kicker">{adapter.kicker || 'AI ASSISTANT'}</div>
               <div className="np-chat-title">{adapter.title}</div>
             </div>
             <div className="np-chat-header-actions">
               <button type="button" className="np-chat-text-button" onClick={() => setShowChoices(true)}>
                 Options
               </button>
-              <button type="button" className="np-chat-close" onClick={() => setOpen(false)} aria-label="Close Network+ tutor">
+              <button type="button" className="np-chat-close" onClick={() => setOpen(false)} aria-label={`Close ${adapter.title}`}>
                 ×
               </button>
             </div>
@@ -138,8 +152,8 @@ export default function ChatWidget({ adapter, theme }) {
           <div className="np-chat-scroll" ref={scrollRef} aria-live="polite">
             {messages.length === 0 && (
               <div className="np-chat-welcome">
-                <strong>Network+ tutor ready.</strong>
-                <span>I can explain concepts, quiz you, and use your saved study progress for context.</span>
+                <strong>{adapter.welcomeTitle || `${adapter.title} ready.`}</strong>
+                <span>{adapter.welcomeBody || 'Ask a question or choose an option below.'}</span>
               </div>
             )}
 
@@ -192,7 +206,7 @@ export default function ChatWidget({ adapter, theme }) {
               placeholder={adapter.inputPlaceholder}
               rows={1}
               disabled={sending}
-              aria-label="Network+ chat message"
+              aria-label="Chat message"
               onKeyDown={event => {
                 if (event.key === 'Enter' && !event.shiftKey) {
                   event.preventDefault()
