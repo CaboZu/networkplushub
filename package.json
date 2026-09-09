@@ -4,8 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "refresh:curriculum": "node scripts/generate-refreshed-app.mjs",
+    "refresh:curriculum": "node scripts/generate-refreshed-app.mjs && node scripts/inject-chat-context.mjs",
     "test:curriculum": "node scripts/test-curriculum-refresh.mjs",
+    "test:chat": "node scripts/test-chat-state.mjs && node scripts/test-chat-relay.mjs",
+    "verify:chatbot": "npm run test:chat && npm run test:curriculum && npm run lint && npm run build",
     "predev": "npm run refresh:curriculum && npm run test:curriculum",
     "dev": "vite --host 127.0.0.1 --port 7777",
     "prestart": "npm run refresh:curriculum && npm run test:curriculum",
