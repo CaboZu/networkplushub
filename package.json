@@ -4,10 +4,17 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "refresh:curriculum": "node scripts/generate-refreshed-app.mjs",
+    "test:curriculum": "node scripts/test-curriculum-refresh.mjs",
+    "predev": "npm run refresh:curriculum && npm run test:curriculum",
     "dev": "vite --host 127.0.0.1 --port 7777",
+    "prestart": "npm run refresh:curriculum && npm run test:curriculum",
     "start": "vite --host 127.0.0.1 --port 7777 --open",
+    "prebuild": "npm run refresh:curriculum && npm run test:curriculum",
     "build": "vite build",
     "lint": "eslint .",
+    "audit:doctrine": "node scripts/audit-network-plus-doctrine.mjs",
+    "audit:doctrine:strict": "node scripts/audit-network-plus-doctrine.mjs --strict",
     "preview": "vite preview --host 127.0.0.1 --port 7777",
     "serve": "npx serve -s dist -l 7777"
   },
